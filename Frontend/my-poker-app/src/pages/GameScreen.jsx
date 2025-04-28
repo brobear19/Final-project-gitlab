@@ -117,7 +117,7 @@ export default function GamePage() {
             ? {
               ...player,
               chips: player.chips - message.amount,
-              currentRoundBet: (player.currentRoundBet || 0) + message.amount // ✅ ALSO update currentRoundBet
+              currentRoundBet: (player.currentRoundBet || 0) + message.amount
             }
             : player
         ));
@@ -139,17 +139,17 @@ export default function GamePage() {
         ]);
 
         if (message.players) {
-          setPlayers(message.players); // ✅ Use updated players with new chips
+          setPlayers(message.players);
         }
 
-        setPot(message.pot || 0); // ✅ Reset pot to 0
-        setHistory([]); // ✅ Clear action history
-        setCurrentBid(0); // ✅ Reset current bid
+        setPot(message.pot || 0);
+        setHistory([]);
+        setCurrentBid(0);
       }
 
       if (message.type === 'player_quit') {
         const { userId, username } = message;
-      
+
         setPlayers(prevPlayers => prevPlayers.filter(player => player.userId !== userId));
         setHistory(prevHistory => [`${username} has left the game`, ...prevHistory]);
       }
@@ -182,7 +182,7 @@ export default function GamePage() {
         console.log('Cached Chips:', players);
         handleQuitGame(message.players);
       }
-      
+
 
     };
   }, [lobbyCode]);
@@ -239,22 +239,22 @@ export default function GamePage() {
       const serverBalance = serverRes.data.balance;
       let gameBalance = 0;
       // Step 2: Calculate difference
-      if(serverPlayers._reactName === 'onClick'){
+      if (serverPlayers._reactName === 'onClick') {
         const foundPlayer = players.find(p => p.userId === user.id);
         gameBalance = foundPlayer?.chips ?? 0;
-      }else{
+      } else {
         const foundPlayer = serverPlayers.find(p => p.userId === user.id);
         gameBalance = foundPlayer?.chips ?? 0;
       }
-      
-  
+
+
       const netChange = gameBalance - serverBalance;
-  
+
       console.log('Server Balance:', serverBalance);
       console.log('Game Balance:', gameBalance);
       console.log('Net Change:', netChange);
       console.log('players:', players);
-  
+
       // Step 3: Record a transaction if needed
       if (netChange !== 0) {
         await API.post('/transaction', {
@@ -262,11 +262,11 @@ export default function GamePage() {
           type: netChange > 0 ? 'win' : 'loss',
           amount: Math.abs(netChange)
         });
-  
+
         // Update user balance on server
         await API.patch(`/user/${user.id}`, { balance: gameBalance });
       }
-  
+
       // Step 4: Send quit message
       socketRef.send(JSON.stringify({
         type: 'quit_game',
@@ -274,19 +274,19 @@ export default function GamePage() {
         userId: user.id,
         username: user.username
       }));
-      if(serverPlayers._reactName !== 'onClick'){
+      if (serverPlayers._reactName !== 'onClick') {
         alert('The host has ended the game. Returning to landing page.');
       }
       // Step 5: Redirect
       window.location.href = '/landing';
-  
+
     } catch (error) {
       console.error('Error handling quit:', error);
       alert('Failed to properly quit game.');
     }
   };
-  
-  
+
+
 
 
 
@@ -423,9 +423,30 @@ export default function GamePage() {
           {/* Action Buttons */}
           {currentTurnUserId === user.id && !players.find(p => p.userId === user.id)?.folded && (
             <div className="d-flex flex-wrap justify-content-center gap-3 mb-4">
-              <Button variant="primary" onClick={handleCheck}>Check</Button>
-              <Button variant="danger" onClick={handleFold}>Fold</Button>
-              <Button variant="success" onClick={handleBet}>Bet</Button>
+              {(() => {
+                const player = players.find(p => p.userId === user.id);
+                const playerCurrentBet = player?.currentRoundBet || 0;
+
+                if (playerCurrentBet === currentBid) {
+                  // Player can check, fold, or bet
+                  return (
+                    <>
+                      <Button variant="primary" onClick={handleCheck}>Check</Button>
+                      <Button variant="danger" onClick={handleFold}>Fold</Button>
+                      <Button variant="success" onClick={handleBet}>Bet</Button>
+                    </>
+                  );
+                } else {
+                  // Player must either fold or call/raise (bet)
+                  return (
+                    <>
+                      <Button variant="danger" onClick={handleFold}>Fold</Button>
+                      <Button variant="success" onClick={handleBet}>Bet</Button>
+                    </>
+                  );
+                }
+              })()}
+
             </div>
           )}
 

@@ -13,7 +13,7 @@ const wss = new Server({ server });
 const lobbies = new Map();
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN,
   credentials: true
 }));
 
