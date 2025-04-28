@@ -295,8 +295,16 @@ export default function GamePage() {
       const handString = playerHand.map(card => `${card.value}${card.suit}`).join(',');
       const communityString = communityCards.map(card => `${card.value}${card.suit}`).join(',');
 
-      const response = await fetch(`http://localhost:3001/api/ai/recommend?playerChips=${chips}&pot=${pot}&currentBid=${currentBid}&hand=${handString}&communityCards=${communityString}`);
-      const data = await response.json();
+      const response = await API.get('/ai/recommend', {
+        params: {
+          playerChips: chips,
+          pot: pot,
+          currentBid: currentBid,
+          hand: handString,
+          communityCards: communityString
+        }
+      });
+      const data = await response.data;
 
       if (data.move) {
         alert(`AI recommends you to: ${data.move.toUpperCase()}`);

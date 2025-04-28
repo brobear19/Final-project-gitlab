@@ -2,7 +2,7 @@
 
 let socket = null;
 
-export function connectSocket(url = 'ws://localhost:3001') {
+export function connectSocket(url = process.env.REACT_APP_WS_URL) {
   if (!socket || socket.readyState >= 2) { // 2 = CLOSING, 3 = CLOSED
     socket = new WebSocket(url);
 
