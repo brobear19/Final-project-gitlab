@@ -1,1 +1,2 @@
 *.env
+Frontend/node_modules/*
