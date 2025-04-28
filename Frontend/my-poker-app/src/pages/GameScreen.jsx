@@ -108,20 +108,31 @@ export default function GamePage() {
       }
 
       if (message.type === 'bet_made') {
-        let savedbid = currentBid + message.amount;
-        setCurrentBid(savedbid);
+        setPlayers(prevPlayers => {
+          const updatedPlayers = prevPlayers.map(player =>
+            player.userId === message.userId
+              ? {
+                  ...player,
+                  chips: player.chips - message.amount,
+                  currentRoundBet: (player.currentRoundBet || 0) + message.amount
+                }
+              : player
+          );
+      
+          // 👉 After updating players, find the new highest bet
+          const maxBet = Math.max(
+            0,
+            ...updatedPlayers.map(player => player.currentRoundBet || 0)
+          );
+      
+          setCurrentBid(maxBet); // ✨ set correct max bet after bet is made
+          return updatedPlayers;
+        });
+      
         setHistory(prev => [...prev, `${message.username} bet ${message.amount} chips`]);
         setPot(prevPot => prevPot + message.amount);
-        setPlayers(prevPlayers => prevPlayers.map(player =>
-          player.userId === message.userId
-            ? {
-              ...player,
-              chips: player.chips - message.amount,
-              currentRoundBet: (player.currentRoundBet || 0) + message.amount
-            }
-            : player
-        ));
       }
+      
 
       if (message.type === 'player_checked') {
         setHistory(prev => [...prev, `${message.username} checked`]);
